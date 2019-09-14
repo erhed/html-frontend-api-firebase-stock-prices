@@ -128,8 +128,8 @@ function setChart(data) {
         fill: true,
         borderColor: "rgba(60, 120, 216, 1)",
         lineTension: 0.01,
-        backgroundColor: "rgba(60, 120, 216, 0.2)",
-        borderWidth: 4,
+        backgroundColor: "rgba(60, 120, 216, 0.4)",
+        borderWidth: 1,
       }]
     },
     options: {
@@ -148,7 +148,7 @@ function setChart(data) {
             display: false
           },
           gridLines: {
-            color: "rgba(255, 255, 255, 0)"
+            color: "rgba(255, 255, 255, 0.1)"
           }
         }],
         xAxes: [{
@@ -156,7 +156,7 @@ function setChart(data) {
             display: false
           },
           gridLines: {
-            color: "rgba(255, 255, 255, 0)"
+            color: "rgba(255, 255, 255, 0.1)"
           }
         }]
       },

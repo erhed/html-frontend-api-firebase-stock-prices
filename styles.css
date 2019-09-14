@@ -6,7 +6,11 @@
 
 body {
   padding-top: 30px;
-  padding-left: 50px;
+}
+
+.wrapper {
+  display: flex;
+  justify-content: center;
 }
 
 
@@ -69,7 +73,7 @@ h1 {
   font-size: 40px;
   font-family: 'Roboto', sans-serif;
   font-weight: 700;
-  margin-top: 30px;
+  margin-top: 38px;
 }
 
 h2 {
@@ -82,7 +86,7 @@ h3 {
   font-size: 80px;
   font-family: 'Roboto', sans-serif;
   font-weight: 700;
-  margin-top: -20px;
+  margin-top: -30px;
   margin-left: 4px;
   color: #3c78d8;
   width: 700px;
@@ -110,13 +114,13 @@ h3 {
   padding-left: 6px;
   padding-right: 6px;
   margin-left: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 0px;
   margin-top: -4px;
   border-radius: 4px;
 }
 
 #from-api, #delete-cache {
-  background-color: red;
+  background-color: #3c78d8;
 }
 
 #from-cache {
@@ -124,6 +128,7 @@ h3 {
 }
 
 #delete-cache {
+  background-color: red;
   cursor: pointer;
 }
 
@@ -133,7 +138,9 @@ h3 {
 
 #chart-container {
   background-color: rgba(60, 120, 216, 0.1);
+  padding-top: 8px;
   width: 700px;
   margin-top: 20px;
   display: none;
+  border: 1px solid rgba(60, 120, 216, 0.2);
 }
