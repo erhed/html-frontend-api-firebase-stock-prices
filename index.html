@@ -7,18 +7,32 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Stock data</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,500,700&display=swap" rel="stylesheet">
 </head>
 
 <body>
   <div class="wrapper">
-    <div class="header">
-      <div class="search-container">
-        <input type="text" class="input" id="search-input" placeholder="Get stock price for company (eg. Apple, Microsoft)" list="search-results">
-        <div id="search-results">
-        </div>
+    <div class="search-container">
+      <input type="text" class="input" id="search-input"
+        placeholder="Get stock price for company (eg. Apple, Microsoft)" list="search-results">
+      <div id="search-results">
       </div>
     </div>
+    <div class="result-container">
+      <h1 id="stock-name"></h1>
+      <h2 id="stock-symbol"></h2>
+      <h3 id="stock-price"></h3>
+    </div>
+    <div class="cards-container">
+      <div class="small-card" id="from-api">SOURCE: API</div>
+      <!-- <div class="small-card" id="from-cache">SOURCE: CACHE</div> -->
+      <!-- <div class="small-card" id="delete-cache">DELETE FROM CACHE</div> -->
+    </div>
+    <div id="chart-container">
+      <canvas id="chart" width="690" height="300"></canvas>
+    </div>
   </div>
+  <script src="Chart.bundle.min.js"></script>
   <script src="script.js"></script>
 </body>
 

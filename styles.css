@@ -1,11 +1,17 @@
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   padding-top: 30px;
-  padding-left: 40px;
+  padding-left: 50px;
 }
+
+
+/* Search */
+
 
 input:focus {
   outline: none;
@@ -13,8 +19,10 @@ input:focus {
 
 .input {
   padding: 10px;
-  width: 500px;
-  font: 400 18px "arial";
+  width: 700px;
+  font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
   border-width: 0px;
   box-shadow: 0 4 1px #777777;
 }
@@ -26,7 +34,7 @@ input:focus {
 #search-results {
   margin-top: 0px;
   padding: 0px;
-  width: 502px;
+  width: 702px;
   border-top: 4px solid #3c78d8;
   position: absolute;
   margin-left: -1px;
@@ -34,17 +42,98 @@ input:focus {
 
 .search-result-list-item {
   padding: 8px;
-  font: 400 18px "arial";
+  font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
   border-bottom: 1px solid #DDDDDD;
   color: #999999;
+  transition: all 80ms;
+  background-color: #FFFFFF;
 }
 
 .search-result-list-item:first-child {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .search-result-list-item:hover {
   color: #FFFFFF;
   background-color: #3c78d8;
   cursor: pointer;
+}
+
+
+/* Stock price */
+
+
+h1 {
+  font-size: 40px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  margin-top: 30px;
+}
+
+h2 {
+  font-size: 30px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+}
+
+h3 {
+  font-size: 80px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  margin-top: -20px;
+  margin-left: 4px;
+  color: #3c78d8;
+  width: 700px;
+  text-align: right;
+}
+
+
+/* Cards */
+
+
+.cards-container {
+  display: flex;
+  width: 700px;
+  justify-content: flex-end;
+}
+
+.small-card {
+  display: inline-block;
+  font-size: 12px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  color: white;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 6px;
+  padding-right: 6px;
+  margin-left: 8px;
+  margin-bottom: 4px;
+  margin-top: -4px;
+  border-radius: 4px;
+}
+
+#from-api, #delete-cache {
+  background-color: red;
+}
+
+#from-cache {
+  background-color: olive;
+}
+
+#delete-cache {
+  cursor: pointer;
+}
+
+
+/* Chart */
+
+
+#chart-container {
+  background-color: rgba(60, 120, 216, 0.1);
+  width: 700px;
+  margin-top: 20px;
+  display: none;
 }

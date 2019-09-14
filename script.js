@@ -1,6 +1,10 @@
 const apiKey = "8UH3CUJQ74Z7K8N7";
 const apiURL = "https://www.alphavantage.co/query?";
 
+const stockName = document.getElementById('stock-name');
+const stockSymbol = document.getElementById('stock-symbol');
+const stockPrice = document.getElementById('stock-price');
+
 // Search
 
 const searchResults = document.getElementById('search-results');
@@ -14,10 +18,15 @@ searchInput.addEventListener('input', e => {
   }
 });
 
+// searchInput.addEventListener('focusout', () => {
+//   hideSearchResults();
+// });
+
 function getSearchResults(input) {
   const url = `${apiURL}function=SYMBOL_SEARCH&keywords=${input}&apikey=${apiKey}`;
   fetch(url)
     .then(resp => {
+      console.log(resp);
       return resp.json();
     }).then(json => {
       let bestMatches = json.bestMatches;
@@ -37,7 +46,7 @@ function showBestMatches(list) {
   list.map(asset => {
     let symbol = Object.values(asset)[0];
     let name = Object.values(asset)[1];
-    optionsList += `<div class="search-result-list-item" onclick="searchItemClicked('${symbol}')">${name}</div>`;
+    optionsList += `<div class="search-result-list-item" onclick="searchItemClicked('${symbol}','${name}')">${name}</div>`;
   });
   searchResults.innerHTML = optionsList;
 }
@@ -49,7 +58,10 @@ function hideSearchResults() {
 
 // Get data on asset select
 
-function searchItemClicked(symbol) {
+function searchItemClicked(symbol, name) {
+  stockName.innerText = name;
+  stockSymbol.innerText = symbol;
+
   getAssetDataFromAPI(symbol);
   hideSearchResults();
 }
@@ -71,19 +83,86 @@ function getAssetDataFromAPI(symbol) {
 
 // Get relevant values from API/Firebase data
 
-function formatData(data) {
+function getPrices(data) {
   let allDailyPrices = Object.values(data)[1];
-  let latestDate = Object.keys(allDailyPrices)[0];
+  //let latestDate = Object.keys(allDailyPrices)[0];
   let latestDailyOCHLPrices = Object.values(allDailyPrices)[0];
-  let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3]
-  console.log(latestDate);
-  console.log(latestDailyClosePrice);
+  let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
+
+  let chartData = [];
+  for (let i=0; i<100; i++) {
+    let dailyOCHLPrices = Object.values(allDailyPrices)[i];
+    let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
+    chartData.push(parseFloat(dailyClosePrice));
+  }
+
+  return {
+    latest: latestDailyClosePrice.slice(0, 6),
+    chart: chartData.reverse()
+  };
 }
 
 // Show data
 
 function showData(data) {
-  formatData(data);
+  let prices = getPrices(data);
+  stockPrice.innerText = prices.latest;
+  setChart(prices.chart);
+  chartContainer.style.display = "block";
 }
 
 // Firebase functions
+
+// Chart
+
+const chartContainer = document.getElementById('chart-container');
+const ctx = document.getElementById('chart');
+
+function setChart(data) {
+  let chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data,
+      datasets: [{
+        data: data,
+        fill: true,
+        borderColor: "rgba(60, 120, 216, 1)",
+        lineTension: 0.01,
+        backgroundColor: "rgba(60, 120, 216, 0.2)",
+        borderWidth: 4,
+      }]
+    },
+    options: {
+      responsive: false,
+      legend: {
+        display: false
+      },
+      elements: {
+        point: {
+          radius: 0
+        }
+      },
+      scales: {
+        yAxes: [{
+          ticks: {
+            display: false
+          },
+          gridLines: {
+            color: "rgba(255, 255, 255, 0)"
+          }
+        }],
+        xAxes: [{
+          ticks: {
+            display: false
+          },
+          gridLines: {
+            color: "rgba(255, 255, 255, 0)"
+          }
+        }]
+      },
+      title: {
+        display: false
+      }
+    }
+  });
+}
