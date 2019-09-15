@@ -1,9 +1,25 @@
-const apiKey = "8UH3CUJQ74Z7K8N7";
+const apiKey = ALPHA_API_KEY;
 const apiURL = "https://www.alphavantage.co/query?";
 
 const stockName = document.getElementById('stock-name');
 const stockSymbol = document.getElementById('stock-symbol');
 const stockPrice = document.getElementById('stock-price');
+
+// Status cards
+
+const fromApiCard = document.getElementById('from-api');
+const addedToCacheCard = document.getElementById('added-to-cache');
+const fromCacheCard = document.getElementById('from-cache');
+const deleteCacheCard = document.getElementById('delete-cache');
+
+deleteCacheCard.addEventListener('click', () => {
+  deleteDataFromFirebase(stockSymbol.innerText);
+});
+
+// Chart
+
+const chartContainer = document.getElementById('chart-container');
+const ctx = document.getElementById('chart');
 
 // Search
 
@@ -56,13 +72,14 @@ function hideSearchResults() {
   searchInput.value = "";
 }
 
-// Get data on asset select
+// Get data on asset select, check cache first
 
 function searchItemClicked(symbol, name) {
   stockName.innerText = name;
   stockSymbol.innerText = symbol;
 
-  getAssetDataFromAPI(symbol);
+  hideAllStatusCards();
+  getDataFromFirebase(symbol);
   hideSearchResults();
 }
 
@@ -74,8 +91,9 @@ function getAssetDataFromAPI(symbol) {
     .then(resp => {
       return resp.json();
     }).then(json => {
-      showData(json);
+      showData(json, true);
       setDataToFirebase(json, symbol);
+      showStatusCard(fromApiCard);
     })
     .catch(error => {
       console.log("ERROR (fetching asset data from API):" + error);
@@ -84,7 +102,7 @@ function getAssetDataFromAPI(symbol) {
 
 // Get relevant values from API/Firebase data
 
-function getPrices(data) {
+function getPrices(data, isFromAPI) {
   let allDailyPrices = Object.values(data)[1];
   //let latestDate = Object.keys(allDailyPrices)[0];
   let latestDailyOCHLPrices = Object.values(allDailyPrices)[0];
@@ -100,28 +118,40 @@ function getPrices(data) {
     } else {
       break;
     }
-
   }
 
   return {
     latest: latestDailyClosePrice.slice(0, 6),
-    chart: chartData.reverse()
+    chart: isFromAPI ? chartData.reverse() : chartData
   };
 }
 
 // Show data
 
-function showData(data) {
-  let prices = getPrices(data);
+function showData(data, isFromAPI) {
+  let prices = getPrices(data, isFromAPI);
   stockPrice.innerText = prices.latest;
   setChart(prices.chart);
   chartContainer.style.display = "block";
+  console.log(stockSymbol.innerText);
+}
+
+// Show status cards
+
+function showStatusCard(card) {
+  card.style.display = 'inline-block';
+}
+
+// Hide all cards
+
+function hideAllStatusCards() {
+  fromApiCard.style.display = 'none';
+  addedToCacheCard.style.display = 'none';
+  fromCacheCard.style.display = 'none';
+  deleteCacheCard.style.display = 'none';
 }
 
 // Chart
-
-const chartContainer = document.getElementById('chart-container');
-const ctx = document.getElementById('chart');
 
 function setChart(data) {
   let chart = new Chart(ctx, {

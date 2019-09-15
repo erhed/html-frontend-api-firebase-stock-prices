@@ -1,7 +1,7 @@
 // Firebase config
 
 let firebaseConfig = {
-  apiKey: "AIzaSyAdIokq7uhRTsHP6uBcEFQ9IaQwlX5IKM4",
+  apiKey: API_KEY,
   authDomain: "api-stocks-6794e.firebaseapp.com",
   databaseURL: "https://api-stocks-6794e.firebaseio.com",
   projectId: "api-stocks-6794e",
@@ -39,11 +39,30 @@ function setDataToFirebase(data, symbol) {
     date: getDate()
   })
     .then(function () {
-      console.log("Document successfully written!");
+      showStatusCard(addedToCacheCard);
     })
     .catch(function (error) {
       console.error("Error writing document: ", error);
     });
+}
+
+// Get data
+
+function getDataFromFirebase(symbol) {
+  db.collection(collection).doc(symbol).get().then(function (doc) {
+    if (doc.exists) {
+      let data = doc.data();
+      if (data.date === getDate()) {
+        showData(data.data);
+        showStatusCard(fromCacheCard);
+        showStatusCard(deleteCacheCard);
+      }
+    } else {
+      getAssetDataFromAPI(symbol);
+    }
+  }).catch(function (error) {
+    console.log("Error getting document:", error);
+  });
 }
 
 // Remove data
