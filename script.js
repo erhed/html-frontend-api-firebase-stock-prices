@@ -89,11 +89,17 @@ function getPrices(data) {
   let latestDailyOCHLPrices = Object.values(allDailyPrices)[0];
   let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
 
+  // Get up to 100 data points
   let chartData = [];
-  for (let i=0; i<100; i++) {
+  for (let i = 0; i < 100; i++) {
     let dailyOCHLPrices = Object.values(allDailyPrices)[i];
-    let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
-    chartData.push(parseFloat(dailyClosePrice));
+    if (dailyOCHLPrices != undefined) {
+      let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
+      chartData.push(parseFloat(dailyClosePrice));
+    } else {
+      break;
+    }
+
   }
 
   return {
@@ -128,7 +134,7 @@ function setChart(data) {
         fill: true,
         borderColor: "rgba(60, 120, 216, 1)",
         lineTension: 0.01,
-        backgroundColor: "rgba(60, 120, 216, 0.4)",
+        backgroundColor: "rgba(60, 120, 216, 0.2)",
         borderWidth: 1,
       }]
     },
@@ -145,10 +151,12 @@ function setChart(data) {
       scales: {
         yAxes: [{
           ticks: {
-            display: false
+            display: true,
+            fontSize: 10,
+            fontColor: "#3c78d8"
           },
           gridLines: {
-            color: "rgba(255, 255, 255, 0.1)"
+            color: "rgba(60, 120, 216, 0.1)"
           }
         }],
         xAxes: [{
@@ -156,7 +164,7 @@ function setChart(data) {
             display: false
           },
           gridLines: {
-            color: "rgba(255, 255, 255, 0.1)"
+            color: "rgba(255, 255, 255, 0)"
           }
         }]
       },

@@ -42,6 +42,7 @@ input:focus {
   border-top: 4px solid #3c78d8;
   position: absolute;
   margin-left: -1px;
+  z-index: 100;
 }
 
 .search-result-list-item {
@@ -137,10 +138,12 @@ h3 {
 
 
 #chart-container {
-  background-color: rgba(60, 120, 216, 0.1);
-  padding-top: 8px;
+  /* background-color: rgba(0, 0, 0, 0.4); */
+  padding-top: 16px;
+  padding-left: 4px;
   width: 700px;
   margin-top: 20px;
   display: none;
-  border: 1px solid rgba(60, 120, 216, 0.2);
+  /*border: 1px solid rgba(60, 120, 216, 0.2);*/
+  transform: scale(1.027);
 }
