@@ -75,6 +75,7 @@ function getAssetDataFromAPI(symbol) {
       return resp.json();
     }).then(json => {
       showData(json);
+      setDataToFirebase(json, symbol);
     })
     .catch(error => {
       console.log("ERROR (fetching asset data from API):" + error);
@@ -116,8 +117,6 @@ function showData(data) {
   setChart(prices.chart);
   chartContainer.style.display = "block";
 }
-
-// Firebase functions
 
 // Chart
 
