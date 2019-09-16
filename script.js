@@ -14,12 +14,8 @@ const deleteCacheCard = document.getElementById('delete-cache');
 
 deleteCacheCard.addEventListener('click', () => {
   deleteDataFromFirebase(stockSymbol.innerText);
+  deleteCacheCard.style.display = 'none';
 });
-
-// Chart
-
-const chartContainer = document.getElementById('chart-container');
-const ctx = document.getElementById('chart');
 
 // Search
 
@@ -33,10 +29,6 @@ searchInput.addEventListener('input', e => {
     hideSearchResults();
   }
 });
-
-// searchInput.addEventListener('focusout', () => {
-//   hideSearchResults();
-// });
 
 function getSearchResults(input) {
   const url = `${apiURL}function=SYMBOL_SEARCH&keywords=${input}&apikey=${apiKey}`;
@@ -74,7 +66,7 @@ function hideSearchResults() {
 
 // Get data on asset select, check cache first
 
-function searchItemClicked(symbol, name) {
+async function searchItemClicked(symbol, name) {
   stockName.innerText = name;
   stockSymbol.innerText = symbol;
 
@@ -105,16 +97,27 @@ function getAssetDataFromAPI(symbol) {
 function getPrices(data, isFromAPI) {
   let allDailyPrices = Object.values(data)[1];
   //let latestDate = Object.keys(allDailyPrices)[0];
-  let latestDailyOCHLPrices = Object.values(allDailyPrices)[0];
+
+  let indexLatest = isFromAPI ? 0 : Object.keys(allDailyPrices).length - 1; // Array was reversed when saved to Firebase
+  let latestDailyOCHLPrices = Object.values(allDailyPrices)[indexLatest];
   let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
 
   // Get up to 100 data points
-  let chartData = [];
+  let chartDates = [];
+  let chartDailyCloseData = [];
+  let chartDailyHighData = [];
+  let chartDailyLowData = [];
   for (let i = 0; i < 100; i++) {
     let dailyOCHLPrices = Object.values(allDailyPrices)[i];
     if (dailyOCHLPrices != undefined) {
+      let date = Object.keys(allDailyPrices)[i];
+      chartDates.push(date);
       let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
-      chartData.push(parseFloat(dailyClosePrice));
+      chartDailyCloseData.push(parseFloat(dailyClosePrice));
+      let dailyHighPrice = Object.values(dailyOCHLPrices)[1];
+      chartDailyHighData.push(parseFloat(dailyHighPrice));
+      let dailyLowPrice = Object.values(dailyOCHLPrices)[2];
+      chartDailyLowData.push(parseFloat(dailyLowPrice));
     } else {
       break;
     }
@@ -122,7 +125,12 @@ function getPrices(data, isFromAPI) {
 
   return {
     latest: latestDailyClosePrice.slice(0, 6),
-    chart: isFromAPI ? chartData.reverse() : chartData
+    chartData: {
+      chartDates: isFromAPI ? chartDates.reverse() : chartDates,
+      dailyCloseData: isFromAPI ? chartDailyCloseData.reverse() : chartDailyCloseData,
+      dailyHighData: isFromAPI ? chartDailyHighData.reverse() : chartDailyHighData,
+      dailyLowData: isFromAPI ? chartDailyLowData.reverse() : chartDailyLowData
+    }
   };
 }
 
@@ -131,7 +139,7 @@ function getPrices(data, isFromAPI) {
 function showData(data, isFromAPI) {
   let prices = getPrices(data, isFromAPI);
   stockPrice.innerText = prices.latest;
-  setChart(prices.chart);
+  updateChart(prices.chartData);
   chartContainer.style.display = "block";
   console.log(stockSymbol.innerText);
 }
@@ -151,55 +159,8 @@ function hideAllStatusCards() {
   deleteCacheCard.style.display = 'none';
 }
 
-// Chart
+// Error handling
 
-function setChart(data) {
-  let chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data,
-      datasets: [{
-        data: data,
-        fill: true,
-        borderColor: "rgba(60, 120, 216, 1)",
-        lineTension: 0.01,
-        backgroundColor: "rgba(60, 120, 216, 0.2)",
-        borderWidth: 1,
-      }]
-    },
-    options: {
-      responsive: false,
-      legend: {
-        display: false
-      },
-      elements: {
-        point: {
-          radius: 0
-        }
-      },
-      scales: {
-        yAxes: [{
-          ticks: {
-            display: true,
-            fontSize: 10,
-            fontColor: "#3c78d8"
-          },
-          gridLines: {
-            color: "rgba(60, 120, 216, 0.1)"
-          }
-        }],
-        xAxes: [{
-          ticks: {
-            display: false
-          },
-          gridLines: {
-            color: "rgba(255, 255, 255, 0)"
-          }
-        }]
-      },
-      title: {
-        display: false
-      }
-    }
-  });
+function showError(error) {
+
 }
