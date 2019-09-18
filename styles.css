@@ -13,9 +13,7 @@ body {
   justify-content: center;
 }
 
-
 /* Search */
-
 
 input:focus {
   outline: none;
@@ -66,9 +64,11 @@ input:focus {
   cursor: pointer;
 }
 
-
 /* Stock price */
 
+#result-container {
+  display: block;
+}
 
 h1 {
   font-size: 40px;
@@ -96,9 +96,7 @@ h3 {
   text-align: left;
 }
 
-
 /* Cards */
-
 
 .cards-container {
   display: flex;
@@ -138,9 +136,7 @@ h3 {
   display: none;
 }
 
-
 /* Chart */
-
 
 #chart-container {
   /* background-color: rgba(0, 0, 0, 0.4); */
@@ -151,4 +147,35 @@ h3 {
   display: none;
   /*border: 1px solid rgba(60, 120, 216, 0.2);*/
   transform: scale(1.023);
+}
+
+/* Error */
+
+#errors {
+  display: block;
+}
+
+.error-container {
+  margin-top: 20px;
+  padding: 8px;
+  display: flex;
+  border-radius: 4px;
+  border: 1px solid darkred;
+  background-color: rgba(255, 120, 0, 0.3);
+}
+
+.error-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.error-msg {
+  display: inline-block;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  color: darkred;
+  margin-left: 10px;
+  margin-top: -1px;
 }

@@ -27,50 +27,99 @@ function getDate() {
     month = "0" + month;
   }
   let year = date.getFullYear();
-
   return year + "-" + month + "-" + day;
 }
 
 // Add/edit data
 
-function setDataToFirebase(data, symbol) {
-  db.collection(collection).doc(symbol).set({
-    data: data,
-    date: getDate()
-  })
-    .then(function () {
-      showStatusCard(addedToCacheCard);
-    })
-    .catch(function (error) {
-      console.error("Error writing document: ", error);
+// function setDataToFirebase(data, symbol) {
+//   db.collection(collection).doc(symbol).set({
+//     data: data,
+//     date: getDate()
+//   })
+//     .then(function () {
+//       showStatusCard(addedToCacheCard);
+//     })
+//     .catch(function (error) {
+//       console.error("Error writing document: ", error);
+//     });
+// }
+
+async function saveDataToFirebase(data, symbol, date) {
+  try {
+    let resp = await db.collection(collection).doc(symbol).set({
+      data: data,
+      date: getDate()
     });
+    return {
+      status: OK
+    }
+  } catch (error) {
+    return {
+      error: "Could not cache data. ERROR: " + error,
+      status: ERROR
+    }
+  }
 }
 
 // Get data
 
-function getDataFromFirebase(symbol) {
-  db.collection(collection).doc(symbol).get().then(function (doc) {
+// function getDataFromFirebase(symbol) {
+//   db.collection(collection).doc(symbol).get().then(function (doc) {
+//     if (doc.exists) {
+//       let data = doc.data();
+//       if (data.date === getDate()) {
+//         showData(data.data);
+//         showStatusCard(fromCacheCard);
+//         showStatusCard(deleteCacheCard);
+//       }
+//     } else {
+//       getAssetDataFromAPI(symbol);
+//     }
+//   }).catch(function (error) {
+//     console.log("Error getting document:", error);
+//   });
+// }
+
+async function getDataFromFirebase(symbol) {
+  try {
+    let doc = await db.collection(collection).doc(symbol).get();
     if (doc.exists) {
-      let data = doc.data();
-      if (data.date === getDate()) {
-        showData(data.data);
-        showStatusCard(fromCacheCard);
-        showStatusCard(deleteCacheCard);
+      return {
+        json: doc.data(),
+        status: OK
       }
     } else {
-      getAssetDataFromAPI(symbol);
+      return undefined;
     }
-  }).catch(function (error) {
-    console.log("Error getting document:", error);
-  });
+  } catch (error) {
+    return {
+      error: error,
+      status: ERROR
+    }
+  }
 }
 
 // Remove data
 
-function deleteDataFromFirebase(symbol) {
-  db.collection(collection).doc(symbol).delete().then(function () {
-    console.log("Document successfully deleted!");
-  }).catch(function (error) {
-    console.error("Error removing document: ", error);
-  });
+// function deleteDataFromFirebase(symbol) {
+//   db.collection(collection).doc(symbol).delete().then(function () {
+//     console.log("Document successfully deleted!");
+//   }).catch(function (error) {
+//     console.error("Error removing document: ", error);
+//   });
+// }
+
+async function deleteDataFromFirebase(symbol) {
+  try {
+    await db.collection(collection).doc(symbol).delete();
+    return {
+      status: OK
+    }
+  } catch (error) {
+    return {
+      error: error,
+      status: ERROR
+    }
+  }
 }

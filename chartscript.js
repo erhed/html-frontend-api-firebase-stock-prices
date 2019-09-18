@@ -1,14 +1,5 @@
-// Chart
-
-const chartContainer = document.getElementById('chart-container');
-const ctx = document.getElementById('chart').getContext("2d");
-
-const gradientFill = ctx.createLinearGradient(0, 0, 0, 300);
-gradientFill.addColorStop(0, "rgba(60, 120, 216, 0.0)");
-gradientFill.addColorStop(1, "rgba(60, 120, 216, 0.5)");
-
 var chartConfig = {
-  type: 'line',
+  type: "line",
   options: {
     responsive: false,
     legend: {
@@ -17,6 +8,7 @@ var chartConfig = {
     elements: {
       point: {
         radius: 2,
+        hitRadius: 4
       }
     },
     scales: {
@@ -45,8 +37,6 @@ var chartConfig = {
   }
 }
 
-let chart = new Chart(ctx, chartConfig);
-
 function updateChart(data) {
   chart.config.data = {
     labels: data.chartDates,
@@ -58,6 +48,8 @@ function updateChart(data) {
         lineTension: 0,
         backgroundColor: gradientFill,
         borderWidth: 1,
+        //showLine: false,
+        //pointBackgroundColor: "rgba(60, 120, 216, 1)"
       },
       {
         data: data.dailyHighData,

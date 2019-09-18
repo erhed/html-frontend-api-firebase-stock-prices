@@ -1,9 +1,19 @@
 const apiKey = ALPHA_API_KEY;
 const apiURL = "https://www.alphavantage.co/query?";
 
+const resultContainer = document.getElementById('result-container');
 const stockName = document.getElementById('stock-name');
 const stockSymbol = document.getElementById('stock-symbol');
 const stockPrice = document.getElementById('stock-price');
+
+const errors = document.getElementById('errors');
+const OK = "OK";
+const ERROR = "ERROR";
+
+const spinner = document.getElementById('spinner');
+
+//showError("Det finns inga bananer i pyjamas");
+//showError("Thanos did nothing wrong");
 
 // Status cards
 
@@ -17,6 +27,17 @@ deleteCacheCard.addEventListener('click', () => {
   deleteCacheCard.style.display = 'none';
 });
 
+// Chart
+
+const chartContainer = document.getElementById('chart-container');
+const ctx = document.getElementById('chart').getContext("2d");
+
+const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+gradientFill.addColorStop(0, "rgba(60, 120, 216, 0.0)");
+gradientFill.addColorStop(1, "rgba(60, 120, 216, 0.7)");
+
+const chart = new Chart(ctx, chartConfig);
+
 // Search
 
 const searchResults = document.getElementById('search-results');
@@ -26,7 +47,8 @@ searchInput.addEventListener('input', e => {
   if (searchInput.value != "") {
     getSearchResults(searchInput.value);
   } else {
-    hideSearchResults();
+    removeAllErrors();
+    searchResults.innerHTML = "";
   }
 });
 
@@ -45,7 +67,7 @@ function getSearchResults(input) {
       }
     })
     .catch(error => {
-      console.log("ERROR (fetching search results):" + error);
+      showError("Could not get search results: " + error);
     });
 }
 
@@ -67,81 +89,126 @@ function hideSearchResults() {
 // Get data on asset select, check cache first
 
 async function searchItemClicked(symbol, name) {
+  hideResults();
+  removeAllErrors();
+  showLoader();
+  hideSearchResults();
+  hideAllStatusCards();
+  chartContainer.style.display = "none";
+  // Cache
+  let FBResp = await getDataFromFirebase(symbol);
+  if (FBResp !== undefined && FBResp.status === OK && FBResp.json.date === getDate()) {
+    showResultInfo(name, symbol);
+    showData(FBResp.json.data);
+    showStatusCard(fromCacheCard);
+    showStatusCard(deleteCacheCard);
+  } else {
+    // API
+    let APIResp = await getDataFromAPI(symbol);
+    if (APIResp !== undefined && APIResp.status === OK) {
+      showResultInfo(name, symbol);
+      showData(APIResp.json, true);
+      showStatusCard(fromApiCard);
+      // Save to cache
+      let cacheData = await saveDataToFirebase(APIResp.json, symbol);
+      if (cacheData.status === OK) {
+        showStatusCard(addedToCacheCard);
+      } else {
+        showError(cacheData.error);
+      }
+    } else {
+      showError(APIResp.error);
+    }
+  }
+}
+
+function showResultInfo(name, symbol) {
+  showResults();
   stockName.innerText = name;
   stockSymbol.innerText = symbol;
+}
 
-  hideAllStatusCards();
-  getDataFromFirebase(symbol);
-  hideSearchResults();
+function hideResults() {
+  resultContainer.style.display = "none";
+}
+
+function showResults() {
+  resultContainer.style.display = "block";
 }
 
 // Get asset data from API
 
-function getAssetDataFromAPI(symbol) {
+async function getDataFromAPI(symbol) {
   const url = `${apiURL}function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}`;
-  fetch(url)
-    .then(resp => {
-      return resp.json();
-    }).then(json => {
-      showData(json, true);
-      setDataToFirebase(json, symbol);
-      showStatusCard(fromApiCard);
-    })
-    .catch(error => {
-      console.log("ERROR (fetching asset data from API):" + error);
-    });
+  try {
+    let resp = await fetch(url);
+    let json = await resp.json();
+    return {
+      json: json,
+      status: OK
+    }
+  } catch (error) {
+    return {
+      error: "Could not fetch data from API. ERROR: " + error,
+      status: ERROR
+    }
+  }
 }
 
 // Get relevant values from API/Firebase data
 
 function getPrices(data, isFromAPI) {
-  let allDailyPrices = Object.values(data)[1];
-  //let latestDate = Object.keys(allDailyPrices)[0];
+  try {
+    let allDailyPrices = Object.values(data)[1];
+    //let latestDate = Object.keys(allDailyPrices)[0];
 
-  let indexLatest = isFromAPI ? 0 : Object.keys(allDailyPrices).length - 1; // Array was reversed when saved to Firebase
-  let latestDailyOCHLPrices = Object.values(allDailyPrices)[indexLatest];
-  let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
+    let indexLatest = isFromAPI ? 0 : Object.keys(allDailyPrices).length - 1; // Array was reversed when saved to Firebase
+    let latestDailyOCHLPrices = Object.values(allDailyPrices)[indexLatest];
+    let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
 
-  // Get up to 100 data points
-  let chartDates = [];
-  let chartDailyCloseData = [];
-  let chartDailyHighData = [];
-  let chartDailyLowData = [];
-  for (let i = 0; i < 100; i++) {
-    let dailyOCHLPrices = Object.values(allDailyPrices)[i];
-    if (dailyOCHLPrices != undefined) {
-      let date = Object.keys(allDailyPrices)[i];
-      chartDates.push(date);
-      let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
-      chartDailyCloseData.push(parseFloat(dailyClosePrice));
-      let dailyHighPrice = Object.values(dailyOCHLPrices)[1];
-      chartDailyHighData.push(parseFloat(dailyHighPrice));
-      let dailyLowPrice = Object.values(dailyOCHLPrices)[2];
-      chartDailyLowData.push(parseFloat(dailyLowPrice));
-    } else {
-      break;
+    // Get up to 100 data points
+    let chartDates = [];
+    let chartDailyCloseData = [];
+    let chartDailyHighData = [];
+    let chartDailyLowData = [];
+    for (let i = 0; i < 100; i++) {
+      let dailyOCHLPrices = Object.values(allDailyPrices)[i];
+      if (dailyOCHLPrices != undefined) {
+        let date = Object.keys(allDailyPrices)[i];
+        chartDates.push(date);
+        let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
+        chartDailyCloseData.push(parseFloat(dailyClosePrice));
+        let dailyHighPrice = Object.values(dailyOCHLPrices)[1];
+        chartDailyHighData.push(parseFloat(dailyHighPrice));
+        let dailyLowPrice = Object.values(dailyOCHLPrices)[2];
+        chartDailyLowData.push(parseFloat(dailyLowPrice));
+      } else {
+        break;
+      }
     }
+
+    return {
+      latest: latestDailyClosePrice,
+      chartData: {
+        chartDates: isFromAPI ? chartDates.reverse() : chartDates,
+        dailyCloseData: isFromAPI ? chartDailyCloseData.reverse() : chartDailyCloseData,
+        dailyHighData: isFromAPI ? chartDailyHighData.reverse() : chartDailyHighData,
+        dailyLowData: isFromAPI ? chartDailyLowData.reverse() : chartDailyLowData
+      }
+    };
+  } catch (error) {
+    showError("Error extracting price data from server response");
   }
-
-  return {
-    latest: latestDailyClosePrice.slice(0, 6),
-    chartData: {
-      chartDates: isFromAPI ? chartDates.reverse() : chartDates,
-      dailyCloseData: isFromAPI ? chartDailyCloseData.reverse() : chartDailyCloseData,
-      dailyHighData: isFromAPI ? chartDailyHighData.reverse() : chartDailyHighData,
-      dailyLowData: isFromAPI ? chartDailyLowData.reverse() : chartDailyLowData
-    }
-  };
 }
 
 // Show data
 
 function showData(data, isFromAPI) {
+  hideLoader();
   let prices = getPrices(data, isFromAPI);
   stockPrice.innerText = prices.latest;
   updateChart(prices.chartData);
   chartContainer.style.display = "block";
-  console.log(stockSymbol.innerText);
 }
 
 // Show status cards
@@ -162,5 +229,24 @@ function hideAllStatusCards() {
 // Error handling
 
 function showError(error) {
+  errors.innerHTML += `
+    <div class="error-container">
+      <img class="error-icon" src="error-icon.png">
+      <p class="error-msg">${error}</p>
+    </div>
+  `;
+}
 
+function removeAllErrors() {
+  errors.innerHTML = "";
+}
+
+// Loader
+
+function showLoader() {
+  spinner.style.display = "block";
+}
+
+function hideLoader() {
+  spinner.style.display = "none";
 }
