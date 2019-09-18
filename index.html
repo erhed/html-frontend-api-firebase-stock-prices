@@ -14,7 +14,7 @@
 <body>
   <div class="wrapper">
     <div class="container">
-      <div class="search-container">
+      <div id="search-container">
         <input type="text" class="input" id="search-input"
           placeholder="Get stock price for company (eg. Apple, Microsoft)" list="search-results">
         <div id="search-results">
@@ -27,6 +27,8 @@
           <div></div>
           <div></div>
         </div>
+      </div>
+      <div id="errors">
       </div>
       <div id="results-wrapper">
         <div id="result-container">
@@ -44,8 +46,7 @@
           <canvas id="chart" width="688" height="300"></canvas>
         </div>
       </div>
-      <div id="errors">
-      </div>
+
     </div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-app.js"></script>

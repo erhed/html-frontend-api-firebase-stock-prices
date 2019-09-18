@@ -1,6 +1,14 @@
 var chartConfig = {
   type: "line",
   options: {
+    tooltips: {
+      xPadding: 10,
+      yPadding: 10,
+      titleSpacing: 10,
+      bodySpacing: 10,
+      backgroundColor: "rgba(20, 80, 176, 1.0)",
+      displayColors: false
+    },
     responsive: false,
     legend: {
       display: false

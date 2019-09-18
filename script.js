@@ -12,8 +12,8 @@ const ERROR = "ERROR";
 
 const spinner = document.getElementById('spinner');
 
-//showError("Det finns inga bananer i pyjamas");
-//showError("Thanos did nothing wrong");
+showError("Det finns inga bananer i pyjamas!");
+showError("Jo...");
 
 // Status cards
 
@@ -40,15 +40,17 @@ const chart = new Chart(ctx, chartConfig);
 
 // Search
 
+const searchContainer = document.getElementById('search-container');
 const searchResults = document.getElementById('search-results');
 const searchInput = document.getElementById('search-input');
 
 searchInput.addEventListener('input', e => {
   if (searchInput.value != "") {
+    //searchContainer.style.display = "block";
     getSearchResults(searchInput.value);
   } else {
     removeAllErrors();
-    searchResults.innerHTML = "";
+    //searchContainer.style.display = "none";
   }
 });
 
@@ -67,7 +69,7 @@ function getSearchResults(input) {
       }
     })
     .catch(error => {
-      showError("Could not get search results: " + error);
+      showError("Could not get search results from server. ERROR: " + error);
     });
 }
 
@@ -89,26 +91,28 @@ function hideSearchResults() {
 // Get data on asset select, check cache first
 
 async function searchItemClicked(symbol, name) {
+  // Reset UI
   hideResults();
   removeAllErrors();
   showLoader();
   hideSearchResults();
   hideAllStatusCards();
   chartContainer.style.display = "none";
+
   // Cache
   let FBResp = await getDataFromFirebase(symbol);
   if (FBResp !== undefined && FBResp.status === OK && FBResp.json.date === getDate()) {
     showResultInfo(name, symbol);
-    showData(FBResp.json.data);
     showStatusCard(fromCacheCard);
     showStatusCard(deleteCacheCard);
+    showData(FBResp.json.data);
   } else {
     // API
     let APIResp = await getDataFromAPI(symbol);
     if (APIResp !== undefined && APIResp.status === OK) {
       showResultInfo(name, symbol);
-      showData(APIResp.json, true);
       showStatusCard(fromApiCard);
+      showData(APIResp.json, true);
       // Save to cache
       let cacheData = await saveDataToFirebase(APIResp.json, symbol);
       if (cacheData.status === OK) {
@@ -158,57 +162,67 @@ async function getDataFromAPI(symbol) {
 // Get relevant values from API/Firebase data
 
 function getPrices(data, isFromAPI) {
-  try {
-    let allDailyPrices = Object.values(data)[1];
-    //let latestDate = Object.keys(allDailyPrices)[0];
-
-    let indexLatest = isFromAPI ? 0 : Object.keys(allDailyPrices).length - 1; // Array was reversed when saved to Firebase
-    let latestDailyOCHLPrices = Object.values(allDailyPrices)[indexLatest];
-    let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
-
-    // Get up to 100 data points
-    let chartDates = [];
-    let chartDailyCloseData = [];
-    let chartDailyHighData = [];
-    let chartDailyLowData = [];
-    for (let i = 0; i < 100; i++) {
-      let dailyOCHLPrices = Object.values(allDailyPrices)[i];
-      if (dailyOCHLPrices != undefined) {
-        let date = Object.keys(allDailyPrices)[i];
-        chartDates.push(date);
-        let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
-        chartDailyCloseData.push(parseFloat(dailyClosePrice));
-        let dailyHighPrice = Object.values(dailyOCHLPrices)[1];
-        chartDailyHighData.push(parseFloat(dailyHighPrice));
-        let dailyLowPrice = Object.values(dailyOCHLPrices)[2];
-        chartDailyLowData.push(parseFloat(dailyLowPrice));
-      } else {
-        break;
-      }
-    }
-
+  if (data.Note) {
     return {
-      latest: latestDailyClosePrice,
-      chartData: {
-        chartDates: isFromAPI ? chartDates.reverse() : chartDates,
-        dailyCloseData: isFromAPI ? chartDailyCloseData.reverse() : chartDailyCloseData,
-        dailyHighData: isFromAPI ? chartDailyHighData.reverse() : chartDailyHighData,
-        dailyLowData: isFromAPI ? chartDailyLowData.reverse() : chartDailyLowData
-      }
+      status: ERROR
     };
-  } catch (error) {
-    showError("Error extracting price data from server response");
   }
+
+  let allDailyPrices = Object.values(data)[1];
+  //let latestDate = Object.keys(allDailyPrices)[0];
+
+  let indexLatest = isFromAPI ? 0 : Object.keys(allDailyPrices).length - 1; // Array was reversed when saved to Firebase
+  let latestDailyOCHLPrices = Object.values(allDailyPrices)[indexLatest];
+  let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
+
+  // Get prices for up to 100 days
+  let chartDates = [];
+  let chartDailyCloseData = [];
+  let chartDailyHighData = [];
+  let chartDailyLowData = [];
+  for (let i = 0; i < 100; i++) {
+    let dailyOCHLPrices = Object.values(allDailyPrices)[i];
+    if (dailyOCHLPrices != undefined) {
+      let date = Object.keys(allDailyPrices)[i];
+      chartDates.push(date);
+      let dailyClosePrice = Object.values(dailyOCHLPrices)[3];
+      chartDailyCloseData.push(parseFloat(dailyClosePrice));
+      let dailyHighPrice = Object.values(dailyOCHLPrices)[1];
+      chartDailyHighData.push(parseFloat(dailyHighPrice));
+      let dailyLowPrice = Object.values(dailyOCHLPrices)[2];
+      chartDailyLowData.push(parseFloat(dailyLowPrice));
+    } else {
+      break;
+    }
+  }
+
+  return {
+    status: OK,
+    latest: latestDailyClosePrice,
+    chartData: {
+      chartDates: isFromAPI ? chartDates.reverse() : chartDates,
+      dailyCloseData: isFromAPI ? chartDailyCloseData.reverse() : chartDailyCloseData,
+      dailyHighData: isFromAPI ? chartDailyHighData.reverse() : chartDailyHighData,
+      dailyLowData: isFromAPI ? chartDailyLowData.reverse() : chartDailyLowData
+    }
+  };
 }
+
 
 // Show data
 
 function showData(data, isFromAPI) {
   hideLoader();
   let prices = getPrices(data, isFromAPI);
-  stockPrice.innerText = prices.latest;
-  updateChart(prices.chartData);
-  chartContainer.style.display = "block";
+  if (prices.status === OK) {
+    stockPrice.innerText = prices.latest;
+    updateChart(prices.chartData);
+    chartContainer.style.display = "block";
+  } else {
+    hideResults();
+    hideAllStatusCards();
+    showError("Error extracting price data from server response. API limit probably reached.");
+  }
 }
 
 // Show status cards

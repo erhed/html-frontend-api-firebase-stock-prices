@@ -10,7 +10,8 @@ body {
 
 .wrapper {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  margin-left: 60px;
 }
 
 /* Search */
@@ -153,6 +154,7 @@ h3 {
 
 #errors {
   display: block;
+  width: 700px;
 }
 
 .error-container {
@@ -162,6 +164,7 @@ h3 {
   border-radius: 4px;
   border: 1px solid darkred;
   background-color: rgba(255, 120, 0, 0.3);
+  align-items: center;
 }
 
 .error-icon {
