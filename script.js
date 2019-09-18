@@ -12,8 +12,8 @@ const ERROR = "ERROR";
 
 const spinner = document.getElementById('spinner');
 
-showError("Det finns inga bananer i pyjamas!");
-showError("Jo...");
+// showError("Det finns inga bananer i pyjamas!");
+// showError("Jo...");
 
 // Status cards
 
